@@ -1,0 +1,8 @@
+package: go-todo-practice1
+import:
+- package: github.com/gin-gonic/gin
+  version: v1.3.0
+- package: github.com/jinzhu/gorm
+  version: v1.9.4
+  subpackages:
+  - dialects/postgres

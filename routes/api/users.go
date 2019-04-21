@@ -12,23 +12,42 @@ import (
 // UserRouter to setup routing on user management
 func UserRouter(c *gin.Engine) {
 	v1 := c.Group("api/v1/user")
-	v1.GET("/login", loginUser)
+	v1.POST("/login", loginUser)
 	v1.POST("/register", registerUser)
 }
 
 func loginUser(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "GET api/v1/user/login"})
+	var loginForm receivers.LoginForm
+	var user db.User
+	var err error
+	if err = c.ShouldBindJSON(&loginForm); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err = db.DB.Where("email= ?", loginForm.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "POST api/v1/user/login",
+		"user":    user,
+	})
 
 }
 
 func registerUser(c *gin.Context) {
 	// Get request body for email password name
 	var register receivers.RegisterForm
-	if err := c.ShouldBindJSON(&register); err != nil {
+	var err error
+
+	if err = c.ShouldBindJSON(&register); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Hash the password using bcrypt
 	hashedPassword, err := helper.HashPassword(register.Password)
 
 	if err != nil {

@@ -3,6 +3,7 @@ package api
 import (
 	"go-todo-practice1/models/db"
 	"go-todo-practice1/models/receiver"
+	"go-todo-practice1/routes/helper"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,11 +29,18 @@ func registerUser(c *gin.Context) {
 		return
 	}
 
+	hashedPassword, err := helper.HashPassword(register.Password)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	newUser := db.User{
 		FirstName: register.FirstName,
 		LastName:  register.LastName,
 		Email:     register.Email,
-		Password:  register.Password,
+		Password:  string(hashedPassword),
 	}
 
 	data := db.DB.Create(&newUser)
